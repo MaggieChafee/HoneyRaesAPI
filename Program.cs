@@ -111,7 +111,12 @@ app.MapGet("/servicetickets", () =>
 
 app.MapGet("/servicetickets/{id}", (int id) =>
 {
-    return serviceTickets.FirstOrDefault(st => st.Id == id);
+    ServiceTicket ticket = serviceTickets.FirstOrDefault(t => t.Id == id);
+    if (ticket == null)
+    {
+        return Results.NotFound();
+    }
+    return Results.Ok(ticket);
 });
 
 // employees
@@ -122,7 +127,12 @@ app.MapGet("/employees", () =>
 
 app.MapGet("/employees/{id}", (int id) =>
 {
-    return employees.FirstOrDefault(e => e.Id == id);
+    Employee employee = employees.FirstOrDefault(e => e.Id == id);
+    if (employee == null)
+    {
+        return Results.NotFound();
+    }
+    return Results.Ok(employee);
 });
 
 // customers
@@ -133,7 +143,12 @@ app.MapGet("/customers", () =>
 
 app.MapGet("/customers/{id}", (int id) =>
 {
-    return customers.FirstOrDefault(c => c.Id == id);
+    Customer customer = customers.FirstOrDefault(c => c.Id == id);
+    if (customer == null) 
+    {
+        return Results.NotFound();
+    }
+    return Results.Ok(customer);
 });
 
 app.Run();
