@@ -71,7 +71,7 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
     {
         Id = 4,
         CustomerId = 24,
-        EmployeeId = 0,
+        EmployeeId = null,
         Description = "Description for ticket number 4.",
         Emergency = true,
         DateCompleted = new DateTime(2023, 11, 10),
@@ -116,6 +116,8 @@ app.MapGet("/servicetickets/{id}", (int id) =>
     {
         return Results.NotFound();
     }
+    ticket.Employee = employees.FirstOrDefault(e => e.Id == ticket.EmployeeId);
+    ticket.Customer = customers.FirstOrDefault(c => c.Id == ticket.CustomerId);
     return Results.Ok(ticket);
 });
 
@@ -132,6 +134,7 @@ app.MapGet("/employees/{id}", (int id) =>
     {
         return Results.NotFound();
     }
+    employee.ServiceTickets = serviceTickets.Where(st => st.EmployeeId == id).ToList();
     return Results.Ok(employee);
 });
 
@@ -148,6 +151,7 @@ app.MapGet("/customers/{id}", (int id) =>
     {
         return Results.NotFound();
     }
+    customer.ServiceTickets = serviceTickets.Where(st => st.CustomerId == id).ToList();
     return Results.Ok(customer);
 });
 
