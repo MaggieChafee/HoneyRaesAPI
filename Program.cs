@@ -1,4 +1,5 @@
 using HoneyRaesAPI.Models;
+using Microsoft.AspNetCore.Builder;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -121,6 +122,24 @@ app.MapGet("/servicetickets/{id}", (int id) =>
     return Results.Ok(ticket);
 });
 
+app.MapPost("/servicetickets", (ServiceTicket serviceTicket) =>
+{
+    serviceTicket.Id = serviceTickets.Max(st => st.Id) + 1;
+    serviceTickets.Add(serviceTicket);
+    return serviceTicket;
+});
+
+app.MapDelete("/servicetickets/{id}", (int id) =>
+{
+    ServiceTicket deleteTicket = serviceTickets.FirstOrDefault(s => s.Id == id);
+    if (deleteTicket == null)
+    {
+        return Results.NotFound();
+    }
+    serviceTickets.Remove(deleteTicket);
+    return Results.Ok();
+});
+
 // employees
 app.MapGet("/employees", () =>
 {
@@ -154,6 +173,7 @@ app.MapGet("/customers/{id}", (int id) =>
     customer.ServiceTickets = serviceTickets.Where(st => st.CustomerId == id).ToList();
     return Results.Ok(customer);
 });
+
 
 app.Run();
 
