@@ -129,6 +129,12 @@ app.MapPost("/servicetickets", (ServiceTicket serviceTicket) =>
     return serviceTicket;
 });
 
+app.MapPost("/servicetickets/{id}/complete", (int id) =>
+{
+    ServiceTicket ticketToComplete = serviceTickets.FirstOrDefault(s => s.Id == id);
+    ticketToComplete.DateCompleted = DateTime.Today;
+});
+
 app.MapDelete("/servicetickets/{id}", (int id) =>
 {
     ServiceTicket deleteTicket = serviceTickets.FirstOrDefault(s => s.Id == id);
