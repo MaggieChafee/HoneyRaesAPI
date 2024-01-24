@@ -140,6 +140,18 @@ app.MapDelete("/servicetickets/{id}", (int id) =>
     return Results.Ok();
 });
 
+app.MapPut("/servicetickets/{id}", (int id, ServiceTicket serviceTicket) =>
+{
+    ServiceTicket ticketToUpdate = serviceTickets.FirstOrDefault(s => s.Id == id);
+    int ticketIndex = serviceTickets.IndexOf(ticketToUpdate);
+    if (ticketToUpdate == null)
+    {
+        return Results.NotFound();
+    }
+    serviceTickets[ticketIndex].EmployeeId = serviceTicket.EmployeeId;
+    return Results.Ok();
+});
+
 // employees
 app.MapGet("/employees", () =>
 {
