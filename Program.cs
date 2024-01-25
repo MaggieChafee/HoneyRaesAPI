@@ -104,12 +104,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// service tickets
+// ********** Service Tickets **********
+// read all service tickets
 app.MapGet("/servicetickets", () =>
 {
     return serviceTickets;
 });
 
+// read a single service ticket by 
 app.MapGet("/servicetickets/{id}", (int id) =>
 {
     ServiceTicket ticket = serviceTickets.FirstOrDefault(t => t.Id == id);
@@ -122,6 +124,7 @@ app.MapGet("/servicetickets/{id}", (int id) =>
     return Results.Ok(ticket);
 });
 
+// create a service ticket
 app.MapPost("/servicetickets", (ServiceTicket serviceTicket) =>
 {
     serviceTicket.Id = serviceTickets.Max(st => st.Id) + 1;
@@ -129,12 +132,14 @@ app.MapPost("/servicetickets", (ServiceTicket serviceTicket) =>
     return serviceTicket;
 });
 
+// add a completion date to ticket
 app.MapPost("/servicetickets/{id}/complete", (int id) =>
 {
     ServiceTicket ticketToComplete = serviceTickets.FirstOrDefault(s => s.Id == id);
     ticketToComplete.DateCompleted = DateTime.Today;
 });
 
+// delete a ticket
 app.MapDelete("/servicetickets/{id}", (int id) =>
 {
     ServiceTicket deleteTicket = serviceTickets.FirstOrDefault(s => s.Id == id);
@@ -146,6 +151,7 @@ app.MapDelete("/servicetickets/{id}", (int id) =>
     return Results.Ok();
 });
 
+// assign an employee to a service ticket 
 app.MapPut("/servicetickets/{id}", (int id, ServiceTicket serviceTicket) =>
 {
     ServiceTicket ticketToUpdate = serviceTickets.FirstOrDefault(s => s.Id == id);
@@ -158,12 +164,21 @@ app.MapPut("/servicetickets/{id}", (int id, ServiceTicket serviceTicket) =>
     return Results.Ok();
 });
 
-// employees
+// get all service tickets that are incomplete and emergencies
+app.MapGet("/servicetickets/emergencies/incomplete", () =>
+{
+    List<ServiceTicket> emergencies = serviceTickets.Where(s => s.Emergency == true && s.DateCompleted == null).ToList();
+    return emergencies;
+});
+
+// ********** Employees **********
+// get all employees
 app.MapGet("/employees", () =>
 {
     return employees;
 });
 
+// get a single employee
 app.MapGet("/employees/{id}", (int id) =>
 {
     Employee employee = employees.FirstOrDefault(e => e.Id == id);
@@ -175,12 +190,14 @@ app.MapGet("/employees/{id}", (int id) =>
     return Results.Ok(employee);
 });
 
-// customers
+// ********** Customers **********
+// get all customers
 app.MapGet("/customers", () =>
 {
     return customers;
 });
 
+// get a single customer
 app.MapGet("/customers/{id}", (int id) =>
 {
     Customer customer = customers.FirstOrDefault(c => c.Id == id);
@@ -191,6 +208,7 @@ app.MapGet("/customers/{id}", (int id) =>
     customer.ServiceTickets = serviceTickets.Where(st => st.CustomerId == id).ToList();
     return Results.Ok(customer);
 });
+
 
 
 app.Run();
