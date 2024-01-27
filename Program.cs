@@ -1,3 +1,4 @@
+using System.Net.Sockets;
 using HoneyRaesAPI.Models;
 using Microsoft.AspNetCore.Builder;
 
@@ -37,6 +38,12 @@ List<Employee> employees = new List<Employee>
         Id = 77,
         Name = "Natalie Mays",
         Specialty = "Crafts and Random Facts"
+    },
+    new Employee()
+    {
+        Id = 90,
+        Name = "Michael Scott",
+        Specialty = "Who knows"
     }
 };
 List<ServiceTicket> serviceTickets = new List<ServiceTicket>
@@ -66,7 +73,7 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
         EmployeeId = 87,
         Description = "Description for ticket number 3.",
         Emergency = false,
-        DateCompleted = new DateTime(2024, 1, 10),
+        DateCompleted = new DateTime(2022, 1, 10),
     },
      new ServiceTicket()
     {
@@ -75,16 +82,16 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
         EmployeeId = null,
         Description = "Description for ticket number 4.",
         Emergency = true,
-        DateCompleted = new DateTime(2023, 11, 10),
+        DateCompleted = new DateTime(2022, 11, 10),
     },
      new ServiceTicket()
     {
         Id = 5,
         CustomerId = 24,
-        EmployeeId = 87,
+        EmployeeId = 77,
         Description = "Description for ticket number 5.",
         Emergency = false,
-        DateCompleted = new DateTime(2023, 12, 10),
+        DateCompleted = new DateTime(2022, 12, 10),
     }
 };
 
@@ -164,13 +171,6 @@ app.MapPut("/servicetickets/{id}", (int id, ServiceTicket serviceTicket) =>
     return Results.Ok();
 });
 
-// get all service tickets that are incomplete and emergencies
-app.MapGet("/servicetickets/emergencies/incomplete", () =>
-{
-    List<ServiceTicket> emergencies = serviceTickets.Where(s => s.Emergency == true && s.DateCompleted == null).ToList();
-    return emergencies;
-});
-
 // ********** Employees **********
 // get all employees
 app.MapGet("/employees", () =>
@@ -209,7 +209,51 @@ app.MapGet("/customers/{id}", (int id) =>
     return Results.Ok(customer);
 });
 
+// ********** Extra Endpoints **********
+
+// 1. Emergencies - get all service tickets that are incomplete and emergencies
+app.MapGet("/servicetickets/emergencies/incomplete", () =>
+{
+    List<ServiceTicket> emergencies = serviceTickets.Where(s => s.Emergency == true && s.DateCompleted == null).ToList();
+    return Results.Ok(emergencies);
+});
+
+// 2. Unassigned - return all currently unassigned service tickets
+
+app.MapGet("/tickets/unassigned", () =>
+{
+    List<ServiceTicket> unassigned = serviceTickets.Where(ticket => ticket.EmployeeId == null).ToList();
+    return Results.Ok(unassigned);
+});
+
+// 3. Inactive Customers - return all of the customers that haven't had a service ticket closed for them in over a year
+
+app.MapGet("/customers/inactive", () =>
+{
+    List<Customer> inactiveCustomers = new();
+    List<ServiceTicket> pastTickets = serviceTickets.Where(ticket => ticket.DateCompleted != null && ticket.DateCompleted <= DateTime.Now.AddYears(-1)).ToList();
+    List<ServiceTicket> currentTickets = serviceTickets.Where(ticket => ticket.DateCompleted > DateTime.Now.AddYears(-1) || ticket.DateCompleted == null).ToList();
+    inactiveCustomers = customers.Where(c => pastTickets.Any(pt => pt.CustomerId == c.Id) && !currentTickets.Any(ct => ct.CustomerId == c.Id)).ToList();
+    return Results.Ok(inactiveCustomers);
+});
 
 
+// 4. Available Employees - return employees not currently assigned to an incomplete service ticket
+app.MapGet("/employees/unassigned", () =>
+{
+    List<Employee> unassignedEmployees = new();
+    List<ServiceTicket> incompleteTickets = serviceTickets.Where(x => x.DateCompleted == null).ToList();
+    unassignedEmployees = employees.Where(u => !incompleteTickets.Any(t => t.EmployeeId == u.Id)).ToList();
+    return Results.Ok(unassignedEmployees);
+});
+
+// 5. Employee's Customers - return all of the customers for whom a given employee has been assigned to a service ticket (whether completed or not)
+app.MapGet("/employee/{id}/customers", (int id) =>
+{
+    Employee employee = employees.FirstOrDefault(e => e.Id == id);
+    List<ServiceTicket> employeeTickets = serviceTickets.Where(x => x.EmployeeId == id).ToList();
+    List<Customer> employeeCustomers = customers.Where(x => employeeTickets.Any(t => t.CustomerId == x.Id)).ToList();
+    return Results.Ok(employeeCustomers);
+});
 app.Run();
 
