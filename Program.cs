@@ -64,7 +64,7 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
         EmployeeId = 77,
         Description = "Description for ticket number 2.",
         Emergency = false,
-        DateCompleted = null,
+        DateCompleted = new DateTime(2024, 1, 9),
     },
     new ServiceTicket()
     {
@@ -73,16 +73,16 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
         EmployeeId = 87,
         Description = "Description for ticket number 3.",
         Emergency = false,
-        DateCompleted = new DateTime(2022, 1, 10),
+        DateCompleted = new DateTime(2024, 1, 10),
     },
      new ServiceTicket()
     {
         Id = 4,
         CustomerId = 24,
-        EmployeeId = null,
+        EmployeeId = 87,
         Description = "Description for ticket number 4.",
         Emergency = true,
-        DateCompleted = new DateTime(2022, 11, 10),
+        DateCompleted = new DateTime(2024, 1, 11),
     },
      new ServiceTicket()
     {
@@ -91,7 +91,7 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
         EmployeeId = 77,
         Description = "Description for ticket number 5.",
         Emergency = false,
-        DateCompleted = new DateTime(2022, 12, 10),
+        DateCompleted = new DateTime(2023, 12, 15),
     }
 };
 
@@ -255,5 +255,17 @@ app.MapGet("/employee/{id}/customers", (int id) =>
     List<Customer> employeeCustomers = customers.Where(x => employeeTickets.Any(t => t.CustomerId == x.Id)).ToList();
     return Results.Ok(employeeCustomers);
 });
+
+// 6. Employee of the Month - return the employee who has completed the most service tickets last month.
+app.MapGet("/employee-of-the-month", () =>
+{
+    DateTime lastMonth = DateTime.Now.AddMonths(-1);
+    Employee employeeOfTheMonth = employees
+        .OrderByDescending(e => serviceTickets
+            .Count(st => st.EmployeeId == e.Id && st.DateCompleted <= lastMonth))
+            .FirstOrDefault();
+    return Results.Ok(employeeOfTheMonth);
+});
+
 app.Run();
 
