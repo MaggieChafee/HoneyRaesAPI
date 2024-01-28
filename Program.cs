@@ -1,6 +1,7 @@
 using System.Net.Sockets;
 using HoneyRaesAPI.Models;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,28 +62,28 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
     {
         Id = 2,
         CustomerId = 33,
-        EmployeeId = 77,
+        EmployeeId = null,
         Description = "Description for ticket number 2.",
-        Emergency = false,
-        DateCompleted = new DateTime(2024, 1, 9),
+        Emergency = true,
+        DateCompleted = null,
     },
     new ServiceTicket()
     {
         Id = 3,
         CustomerId = 33,
-        EmployeeId = 87,
+        EmployeeId = 77,
         Description = "Description for ticket number 3.",
         Emergency = false,
-        DateCompleted = new DateTime(2024, 1, 10),
+        DateCompleted = null,
     },
      new ServiceTicket()
     {
         Id = 4,
         CustomerId = 24,
-        EmployeeId = 87,
+        EmployeeId = null,
         Description = "Description for ticket number 4.",
         Emergency = true,
-        DateCompleted = new DateTime(2024, 1, 11),
+        DateCompleted = null,
     },
      new ServiceTicket()
     {
@@ -265,6 +266,21 @@ app.MapGet("/employee-of-the-month", () =>
             .Count(st => st.EmployeeId == e.Id && st.DateCompleted <= lastMonth))
             .FirstOrDefault();
     return Results.Ok(employeeOfTheMonth);
+});
+
+// 7. Past Ticket Review - return completed tickets in order of the completion date, oldest first
+app.MapGet("/servicetickets/sort/oldest-to-newest", () =>
+{
+    List<ServiceTicket> completedTickets = serviceTickets.Where(d => d.DateCompleted != null).ToList();
+    List<ServiceTicket> oldestToNewest = completedTickets.OrderBy(d => d.DateCompleted).ToList();
+    return Results.Ok(oldestToNewest);
+});
+// 8. Prioritized Tickets - return all tickets that are incomplete, in order first by whether they are emergencies, then by whether they are assigned or not (unassigned first)
+app.MapGet("/servicetickets/priority", () =>
+{
+    List<ServiceTicket> incompleteTickets = serviceTickets.Where(d => d.DateCompleted == null).ToList();
+    List<ServiceTicket> incompleteEmergencies = incompleteTickets.OrderBy(s => s.Emergency != true).ThenBy(e => e.EmployeeId != null).ToList();
+    return Results.Ok(incompleteEmergencies);
 });
 
 app.Run();
