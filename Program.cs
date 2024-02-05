@@ -148,7 +148,7 @@ app.MapPost("/api/servicetickets/{id}/complete", (int id) =>
 });
 
 // delete a ticket
-app.MapDelete("/servicetickets/{id}", (int id) =>
+app.MapDelete("/api/servicetickets/{id}", (int id) =>
 {
     ServiceTicket deleteTicket = serviceTickets.FirstOrDefault(s => s.Id == id);
     if (deleteTicket == null)
